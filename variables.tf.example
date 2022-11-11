@@ -1,0 +1,9 @@
+variable "cloudflare_api_token" {
+  default = "lkjadshflkajsdhf;laksdjfas"
+  type    = string
+}
+
+variable "cloudflare_zone_id" {
+  default = "qwouefh;asldfj;alsidfh"
+  type    = string
+}
