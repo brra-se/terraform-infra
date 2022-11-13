@@ -201,9 +201,9 @@ resource "aws_security_group" "allow_ssh" {
   }
 }
 
-resource "aws_security_group" "allow_jenkins_webhook" {
-  name        = "allow_jenkins_webhook_traffic"
-  description = "Allow Jenkins Webhook inbound traffic"
+resource "aws_security_group" "allow_cicd_traffic" {
+  name        = "allow_cicd_traffic"
+  description = "Allow CICD inbound traffic"
   vpc_id      = aws_vpc.main-vpc.id
 
   ingress {
@@ -215,8 +215,17 @@ resource "aws_security_group" "allow_jenkins_webhook" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
+  ingress {
+    description      = "MongoDB"
+    from_port        = 4600
+    to_port          = 4600
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
   tags = {
-    Name = "allow jenkins webhook"
+    Name = "allow cicd traffic"
   }
 }
 
@@ -229,7 +238,7 @@ resource "aws_network_interface" "web-server-nic" {
 resource "aws_network_interface" "cicd-server-nic" {
   subnet_id       = aws_subnet.subnet-1.id
   private_ips     = ["10.0.1.60"]
-  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id, aws_security_group.allow_jenkins_webhook.id]
+  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id, aws_security_group.allow_cicd_traffic.id]
 }
 
 resource "aws_eip" "public-web-server-ip" {
