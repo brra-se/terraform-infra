@@ -63,6 +63,10 @@ resource "aws_instance" "cicd-server" {
     device_index         = 0
   }
 
+  root_block_device {
+    volume_size = 15
+  }
+
   tags = {
     Name = "CICD Server"
   }
