@@ -197,6 +197,25 @@ resource "aws_security_group" "allow_ssh" {
   }
 }
 
+resource "aws_security_group" "allow_jenkins_webhook" {
+  name        = "allow_jenkins_webhook_traffic"
+  description = "Allow Jenkins Webhook inbound traffic"
+  vpc_id      = aws_vpc.main-vpc.id
+
+  ingress {
+    description      = "Jenkins"
+    from_port        = 8080
+    to_port          = 8080
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "allow jenkins webhook"
+  }
+}
+
 resource "aws_network_interface" "web-server-nic" {
   subnet_id       = aws_subnet.subnet-1.id
   private_ips     = ["10.0.1.50"]
@@ -206,7 +225,7 @@ resource "aws_network_interface" "web-server-nic" {
 resource "aws_network_interface" "cicd-server-nic" {
   subnet_id       = aws_subnet.subnet-1.id
   private_ips     = ["10.0.1.60"]
-  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id]
+  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id, aws_security_group.allow_jenkins_webhook.id]
 }
 
 resource "aws_eip" "public-web-server-ip" {
