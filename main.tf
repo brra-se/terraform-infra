@@ -35,6 +35,22 @@ resource "cloudflare_record" "jenkins" {
   proxied = true
 }
 
+resource "cloudflare_record" "grafana" {
+  zone_id = var.cloudflare_zone_id
+  name    = "grafana"
+  value   = aws_eip.cicd-server-ip.public_ip
+  type    = "A"
+  proxied = true
+}
+
+resource "cloudflare_record" "prometheus" {
+  zone_id = var.cloudflare_zone_id
+  name    = "prometheus"
+  value   = aws_eip.cicd-server-ip.public_ip
+  type    = "A"
+  proxied = true
+}
+
 resource "aws_instance" "cicd-server" {
   ami                  = "ami-094bbd9e922dc515d"
   iam_instance_profile = "S3-Full-Access"
@@ -181,25 +197,6 @@ resource "aws_security_group" "allow_ssh" {
   }
 }
 
-resource "aws_security_group" "allow_cicd_web_console" {
-  name        = "allow_cicd_web_console"
-  description = "Allow Web Consoles Ingress"
-  vpc_id      = aws_vpc.main-vpc.id
-
-  ingress {
-    description      = "Jenkins"
-    from_port        = 8080
-    to_port          = 8080
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  tags = {
-    Name = "allow cicd web consoles"
-  }
-}
-
 resource "aws_network_interface" "web-server-nic" {
   subnet_id       = aws_subnet.subnet-1.id
   private_ips     = ["10.0.1.50"]
@@ -209,7 +206,7 @@ resource "aws_network_interface" "web-server-nic" {
 resource "aws_network_interface" "cicd-server-nic" {
   subnet_id       = aws_subnet.subnet-1.id
   private_ips     = ["10.0.1.60"]
-  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id, aws_security_group.allow_cicd_web_console.id]
+  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id]
 }
 
 resource "aws_eip" "public-web-server-ip" {
