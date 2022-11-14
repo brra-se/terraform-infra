@@ -1,4 +1,11 @@
 terraform {
+  backend "s3" {
+    bucket         = "terraform-state-backend-s3"
+    key            = "global/s3/terraform.tfstate"
+    region         = "ap-southeast-1"
+    dynamodb_table = "terraform-state-locks"
+    encrypt        = true
+  }
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -266,4 +273,49 @@ resource "aws_eip" "cicd-server-ip" {
   depends_on = [
     aws_internet_gateway.main-gateway
   ]
+}
+
+resource "aws_s3_bucket" "terraform-state" {
+  bucket = "terraform-state-backend-s3"
+
+  # Prevent accidental deletion of this S3 bucket
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "aws_s3_bucket_versioning" "enabled" {
+  bucket = aws_s3_bucket.terraform-state.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "default" {
+  bucket = aws_s3_bucket.terraform-state.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "public-access" {
+  bucket                  = aws_s3_bucket.terraform-state.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_dynamodb_table" "terraform_locks" {
+  name         = "terraform-state-locks"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
 }
