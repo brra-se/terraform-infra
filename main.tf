@@ -214,27 +214,18 @@ resource "aws_security_group" "allow_cicd_traffic" {
   vpc_id      = aws_vpc.main-vpc.id
 
   ingress {
-    description      = "Jenkins"
-    from_port        = 8080
-    to_port          = 8080
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    description      = "MongoDB"
-    from_port        = 4600
-    to_port          = 4600
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
     description      = "Docker Registry"
     from_port        = 5000
     to_port          = 5000
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  ingress {
+    description      = "Jenkins"
+    from_port        = 8080
+    to_port          = 8080
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
@@ -244,6 +235,25 @@ resource "aws_security_group" "allow_cicd_traffic" {
     Name = "allow cicd traffic"
   }
 }
+
+resource "aws_security_group" "allow_mongodb_traffic" {
+  name        = "allow_mongodb_traffic"
+  description = "Allow mongodb inbound traffic"
+  vpc_id      = aws_vpc.main-vpc.id
+  ingress {
+    description      = "MongoDB"
+    from_port        = 4600
+    to_port          = 4600
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "allow mongodb traffic"
+  }
+}
+
 
 resource "aws_security_group" "allow_monitoring_traffic" {
   name        = "allow_monitoring_traffic"
@@ -264,9 +274,14 @@ resource "aws_security_group" "allow_monitoring_traffic" {
 }
 
 resource "aws_network_interface" "web-server-nic" {
-  subnet_id       = aws_subnet.subnet-1.id
-  private_ips     = ["10.0.1.50"]
-  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id, aws_security_group.allow_monitoring_traffic.id]
+  subnet_id   = aws_subnet.subnet-1.id
+  private_ips = ["10.0.1.50"]
+  security_groups = [
+    aws_security_group.allow_web.id,
+    aws_security_group.allow_ssh.id,
+    aws_security_group.allow_monitoring_traffic.id,
+    aws_security_group.allow_mongodb_traffic.id
+  ]
 }
 
 resource "aws_network_interface" "cicd-server-nic" {
