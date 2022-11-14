@@ -245,10 +245,28 @@ resource "aws_security_group" "allow_cicd_traffic" {
   }
 }
 
+resource "aws_security_group" "allow_monitoring_traffic" {
+  name        = "allow_monitoring_traffic"
+  description = "Allow monitoring inbound traffic"
+  vpc_id      = aws_vpc.main-vpc.id
+  ingress {
+    description      = "Node Exporter"
+    from_port        = 9100
+    to_port          = 9100
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "allow monitoring traffic"
+  }
+}
+
 resource "aws_network_interface" "web-server-nic" {
   subnet_id       = aws_subnet.subnet-1.id
   private_ips     = ["10.0.1.50"]
-  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id]
+  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id, aws_security_group.allow_monitoring_traffic.id]
 }
 
 resource "aws_network_interface" "cicd-server-nic" {
