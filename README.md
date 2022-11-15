@@ -46,7 +46,7 @@ This section guides you on how to setup this repo for your own use.
 2. Ensure the [AWS CLI](https://aws.amazon.com/cli/) is also installed on your dev computer.
 3. In the AWS console, create an IAM User for Terraform to use.
 4. Run the `aws configure` in your terminal to configure the AWS CLI to use said IAM User:
-5. In your desired project folder, run the following command in your terminal:
+5. In your desired project folder, clone the project with the following command:
 
    ```bash
    git clone https://github.com/PScoriae/terraform-infra
