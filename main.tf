@@ -71,7 +71,7 @@ resource "aws_instance" "cicd-server" {
   }
 
   root_block_device {
-    volume_size = 15
+    volume_size = 20
   }
 
   tags = {
@@ -88,6 +88,10 @@ resource "aws_instance" "web-server" {
   network_interface {
     network_interface_id = aws_network_interface.web-server-nic.id
     device_index         = 0
+  }
+
+  root_block_device {
+    volume_size = 10
   }
 
   tags = {
