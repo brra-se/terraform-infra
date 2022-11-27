@@ -59,7 +59,7 @@ resource "cloudflare_record" "prometheus" {
 }
 
 resource "aws_instance" "cicd-server" {
-  ami                  = "ami-094bbd9e922dc515d"
+  ami                  = "ami-0b2aec26bb1a5169d"
   iam_instance_profile = "S3-Full-Access"
   instance_type        = "t3a.small"
   availability_zone    = "ap-southeast-1a"
@@ -80,7 +80,7 @@ resource "aws_instance" "cicd-server" {
 }
 
 resource "aws_instance" "web-server" {
-  ami               = "ami-094bbd9e922dc515d"
+  ami               = "ami-0b2aec26bb1a5169d"
   instance_type     = "t2.micro"
   availability_zone = "ap-southeast-1a"
   key_name          = "main-key"
