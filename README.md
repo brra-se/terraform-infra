@@ -45,7 +45,7 @@ This section guides you on how to setup this repo for your own use.
 1. First, ensure [Terraform](https://terraform.com) is installed on your dev computer.
 2. Ensure the [AWS CLI](https://aws.amazon.com/cli/) is also installed on your dev computer.
 3. In the AWS console, create an IAM User for Terraform to use.
-4. Run the `aws configure` in your terminal to configure the AWS CLI to use said IAM User:
+4. Run `aws configure` in your terminal to configure the AWS CLI to use said IAM User:
 5. In your desired project folder, clone the project with the following command:
 
    ```bash
@@ -53,5 +53,6 @@ This section guides you on how to setup this repo for your own use.
    ```
 
 6. Get your Cloudflare API token for Terraform to use.
-7. Create a `variables.tf` file in the root directory of your project. It holds the credentials to your Cloudflare account. You may refer to `variables.tf.example`
-8. Finally, run `terraform init` in the root directory to set up the Terraform backend.
+7. Get the Zone IDs for each Cloudflare DNS domain you wish to access through Terraform
+8. Create a `variables.tf` file in the root directory of your project. It holds the credentials to your Cloudflare account. You may refer to `variables.tf.example`
+9. Finally, run `terraform init` in the root directory to set up the Terraform backend.
