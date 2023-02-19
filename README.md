@@ -27,9 +27,9 @@
 
 # About
 
-This repository is concerned with the provisioning of infrastructure for the PCPartsTool project using Terraform IaC. Currently, the cloud services used to host PCPartsTool are AWS and Cloudflare.
+This repository is concerned with the provisioning of infrastructure for any of my personal projects using Terraform IaC. Currently, the cloud services used to host my projects are AWS and Cloudflare.
 
-**Note:** This is just one of multiple repositories that contribute to the PCPartsTool project. Here are all the related repositories:
+**Note:** This is just one of multiple repositories that contribute to my personal projects. Here are all the related repositories:
 
 | Repository                                                             | Built With                                                                                                                                                                                                                                                               | Description                                                         |
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
@@ -37,6 +37,7 @@ This repository is concerned with the provisioning of infrastructure for the PCP
 | [PCPartsTool-Scraper](https://github.com/PScoriae/PCPartsTool-Scraper) | [JavaScript](https://www.javascript.com/), [Jenkins](https://www.jenkins.io/), [Docker](https://www.docker.com/)                                                                                                                                                         | Scraping Script to Gather E-commerce Item Data                      |
 | [terraform-infra](https://github.com/PScoriae/terraform-infra)         | [Terraform](https://terraform.com), [Cloudflare](https://cloudflare.com), [AWS](https://aws.amazon.com)                                                                                                                                                                  | Terraform IaC for PCPartsTool Cloud Infrastructure                  |
 | [ansible-ec2](https://github.com/PScoriae/ansible-ec2)                 | [Ansible](https://ansible.com), [Prometheus](https://prometheus.io), [Grafana](https://grafana.com), [Nginx](https://nginx.com), [AWS](https://aws.amazon.com)                                                                                                           | Ansible CaC for AWS EC2 Bootstraping, Observability and Maintenance |
+| [shuttleday](https://github.com/Kirixi/shuttleday)                     | [React](https://reactjs.org), [TypeScript](https://www.typescriptlang.org/), [MUI](https://mui.com), [Node.js](https://nodejs.org/en/), [Docker](https://www.docker.com/), [Express](https://expressjs.com), [MongoDB](https://mongodb.com)                              | Badminton Scheduling and Information Webapp                         |
 
 # Installation
 
