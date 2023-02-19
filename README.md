@@ -11,7 +11,7 @@
   <img src="./docs/terraform.svg" width=300>
 </p>
 
-## PCPartsTool Terraform IaC
+## Terraform IaC
 
 </div>
 <details>
