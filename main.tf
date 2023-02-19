@@ -26,16 +26,24 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-resource "cloudflare_record" "pcpartstool" {
-  zone_id = var.cloudflare_zone_id
-  name    = "pcpartstool"
-  value   = aws_eip.public-web-server-ip.public_ip
-  type    = "A"
+resource "cloudflare_record" "shuttleday" {
+  zone_id = var.shuttleday_cloudflare_zone_id
+  name    = "shuttleday.info"
+  value   = aws_s3_bucket_website_configuration.shuttleday.website_endpoint
+  type    = "CNAME"
+  proxied = true
+}
+
+resource "cloudflare_record" "www-shuttleday" {
+  zone_id = var.shuttleday_cloudflare_zone_id
+  name    = "www"
+  value   = aws_s3_bucket_website_configuration.www-shuttleday.website_endpoint
+  type    = "CNAME"
   proxied = true
 }
 
 resource "cloudflare_record" "jenkins" {
-  zone_id = var.cloudflare_zone_id
+  zone_id = var.pcc_cloudflare_zone_id
   name    = "jenkins"
   value   = aws_eip.cicd-server-ip.public_ip
   type    = "A"
@@ -43,7 +51,7 @@ resource "cloudflare_record" "jenkins" {
 }
 
 resource "cloudflare_record" "grafana" {
-  zone_id = var.cloudflare_zone_id
+  zone_id = var.pcc_cloudflare_zone_id
   name    = "grafana"
   value   = aws_eip.cicd-server-ip.public_ip
   type    = "A"
@@ -51,7 +59,7 @@ resource "cloudflare_record" "grafana" {
 }
 
 resource "cloudflare_record" "prometheus" {
-  zone_id = var.cloudflare_zone_id
+  zone_id = var.pcc_cloudflare_zone_id
   name    = "prometheus"
   value   = aws_eip.cicd-server-ip.public_ip
   type    = "A"
@@ -59,7 +67,7 @@ resource "cloudflare_record" "prometheus" {
 }
 
 resource "aws_instance" "cicd-server" {
-  ami                  = "ami-0b2aec26bb1a5169d"
+  ami                  = "ami-0255a102dbb96cef7"
   iam_instance_profile = "S3-Full-Access"
   instance_type        = "t3a.small"
   availability_zone    = "ap-southeast-1a"
@@ -79,25 +87,25 @@ resource "aws_instance" "cicd-server" {
   }
 }
 
-resource "aws_instance" "web-server" {
-  ami               = "ami-0b2aec26bb1a5169d"
-  instance_type     = "t2.micro"
-  availability_zone = "ap-southeast-1a"
-  key_name          = "main-key"
+# resource "aws_instance" "web-server" {
+#   ami               = "ami-0255a102dbb96cef7"
+#   instance_type     = "t2.micro"
+#   availability_zone = "ap-southeast-1a"
+#   key_name          = "main-key"
 
-  network_interface {
-    network_interface_id = aws_network_interface.web-server-nic.id
-    device_index         = 0
-  }
+#   network_interface {
+#     network_interface_id = aws_network_interface.web-server-nic.id
+#     device_index         = 0
+#   }
 
-  root_block_device {
-    volume_size = 10
-  }
+#   root_block_device {
+#     volume_size = 10
+#   }
 
-  tags = {
-    Name = "Web Hosting Server"
-  }
-}
+#   tags = {
+#     Name = "Web Hosting Server"
+#   }
+# }
 
 resource "aws_vpc" "main-vpc" {
   cidr_block           = "10.0.0.0/16"
@@ -277,16 +285,16 @@ resource "aws_security_group" "allow_monitoring_traffic" {
   }
 }
 
-resource "aws_network_interface" "web-server-nic" {
-  subnet_id   = aws_subnet.subnet-1.id
-  private_ips = ["10.0.1.50"]
-  security_groups = [
-    aws_security_group.allow_web.id,
-    aws_security_group.allow_ssh.id,
-    aws_security_group.allow_monitoring_traffic.id,
-    aws_security_group.allow_mongodb_traffic.id
-  ]
-}
+# resource "aws_network_interface" "web-server-nic" {
+#   subnet_id   = aws_subnet.subnet-1.id
+#   private_ips = ["10.0.1.50"]
+#   security_groups = [
+#     aws_security_group.allow_web.id,
+#     aws_security_group.allow_ssh.id,
+#     aws_security_group.allow_monitoring_traffic.id,
+#     aws_security_group.allow_mongodb_traffic.id
+#   ]
+# }
 
 resource "aws_network_interface" "cicd-server-nic" {
   subnet_id       = aws_subnet.subnet-1.id
@@ -294,14 +302,14 @@ resource "aws_network_interface" "cicd-server-nic" {
   security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id, aws_security_group.allow_cicd_traffic.id]
 }
 
-resource "aws_eip" "public-web-server-ip" {
-  instance = aws_instance.web-server.id
-  vpc      = true
+# resource "aws_eip" "public-web-server-ip" {
+#   instance = aws_instance.web-server.id
+#   vpc      = true
 
-  depends_on = [
-    aws_internet_gateway.main-gateway
-  ]
-}
+#   depends_on = [
+#     aws_internet_gateway.main-gateway
+#   ]
+# }
 
 resource "aws_eip" "cicd-server-ip" {
   instance = aws_instance.cicd-server.id
@@ -318,6 +326,65 @@ resource "aws_s3_bucket" "terraform-state" {
   # Prevent accidental deletion of this S3 bucket
   lifecycle {
     prevent_destroy = true
+  }
+}
+
+resource "aws_s3_bucket" "shuttleday" {
+  bucket = "shuttleday.info"
+}
+
+resource "aws_s3_bucket_policy" "shuttleday" {
+  bucket = aws_s3_bucket.shuttleday.id
+  policy = file("s3-policies/shuttleday-policy.json")
+}
+
+resource "aws_s3_bucket_acl" "shuttleday_bucket_acl" {
+  bucket = aws_s3_bucket.shuttleday.id
+  acl    = "public-read"
+}
+
+resource "aws_s3_bucket_website_configuration" "shuttleday" {
+  bucket = aws_s3_bucket.shuttleday.id
+
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "error.html"
+  }
+
+  routing_rules = <<EOF
+[{
+    "Condition": {
+        "KeyPrefixEquals": "docs/"
+    },
+    "Redirect": {
+        "ReplaceKeyPrefixWith": ""
+    }
+}]
+EOF
+}
+
+resource "aws_s3_bucket" "www-shuttleday" {
+  bucket = "www.shuttleday.info"
+}
+
+resource "aws_s3_bucket_policy" "www-shuttleday" {
+  bucket = aws_s3_bucket.www-shuttleday.id
+  policy = file("s3-policies/www-shuttleday-policy.json")
+}
+
+resource "aws_s3_bucket_acl" "www_shuttleday_bucket_acl" {
+  bucket = aws_s3_bucket.www-shuttleday.id
+  acl    = "public-read"
+}
+
+resource "aws_s3_bucket_website_configuration" "www-shuttleday" {
+  bucket = aws_s3_bucket.www-shuttleday.id
+
+  redirect_all_requests_to {
+    host_name = aws_s3_bucket.shuttleday.bucket
   }
 }
 
