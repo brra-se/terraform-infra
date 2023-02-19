@@ -42,6 +42,14 @@ resource "cloudflare_record" "www-shuttleday" {
   proxied = true
 }
 
+resource "cloudflare_record" "api-shuttleday" {
+  zone_id = var.shuttleday_cloudflare_zone_id
+  name    = "api"
+  value   = aws_eip.cicd-server-ip.public_ip
+  type    = "A"
+  proxied = true
+}
+
 resource "cloudflare_record" "jenkins" {
   zone_id = var.pcc_cloudflare_zone_id
   name    = "jenkins"
