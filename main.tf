@@ -254,8 +254,8 @@ resource "aws_security_group" "allow_mongodb_traffic" {
   vpc_id      = aws_vpc.main-vpc.id
   ingress {
     description      = "MongoDB"
-    from_port        = 4600
-    to_port          = 4600
+    from_port        = 2500
+    to_port          = 2500
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
