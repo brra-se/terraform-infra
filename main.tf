@@ -396,6 +396,10 @@ resource "aws_s3_bucket_website_configuration" "www-shuttleday" {
   }
 }
 
+resource "aws_s3_bucket" "shuttleday-payments" {
+  bucket = "shuttleday-payments"
+}
+
 resource "aws_s3_bucket_versioning" "enabled" {
   bucket = aws_s3_bucket.terraform-state.id
   versioning_configuration {
