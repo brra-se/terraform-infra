@@ -307,7 +307,7 @@ resource "aws_security_group" "allow_monitoring_traffic" {
 resource "aws_network_interface" "cicd-server-nic" {
   subnet_id       = aws_subnet.subnet-1.id
   private_ips     = ["10.0.1.60"]
-  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id, aws_security_group.allow_cicd_traffic.id]
+  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id, aws_security_group.allow_cicd_traffic.id, aws_security_group.allow_mongodb_traffic.id]
 }
 
 # resource "aws_eip" "public-web-server-ip" {
