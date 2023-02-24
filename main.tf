@@ -74,6 +74,14 @@ resource "cloudflare_record" "prometheus" {
   proxied = true
 }
 
+resource "cloudflare_record" "sonarqube" {
+  zone_id = var.pcc_cloudflare_zone_id
+  name    = "sonarqube"
+  value   = aws_eip.cicd-server-ip.public_ip
+  type    = "A"
+  proxied = true
+}
+
 resource "aws_instance" "cicd-server" {
   ami                  = "ami-0255a102dbb96cef7"
   iam_instance_profile = "S3-Full-Access"
