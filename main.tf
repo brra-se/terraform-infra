@@ -25,7 +25,13 @@ provider "aws" {
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
-
+resource "cloudflare_record" "music-pcc" {
+  zone_id = var.pcc_cloudflare_zone_id
+  name    = "music"
+  value   = aws_s3_bucket_website_configuration.music-pcc.website_endpoint
+  type    = "CNAME"
+  proxied = true
+}
 resource "cloudflare_record" "shuttleday" {
   zone_id = var.shuttleday_cloudflare_zone_id
   name    = "shuttleday.info"
@@ -371,6 +377,43 @@ resource "aws_s3_bucket_acl" "shuttleday_bucket_acl" {
 
 resource "aws_s3_bucket_website_configuration" "shuttleday" {
   bucket = aws_s3_bucket.shuttleday.id
+
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "error.html"
+  }
+
+  routing_rules = <<EOF
+[{
+    "Condition": {
+        "KeyPrefixEquals": "docs/"
+    },
+    "Redirect": {
+        "ReplaceKeyPrefixWith": ""
+    }
+}]
+EOF
+}
+
+resource "aws_s3_bucket" "music-pcc" {
+  bucket = "music.pierreccesario.com"
+}
+
+resource "aws_s3_bucket_policy" "music-pcc" {
+  bucket = aws_s3_bucket.music-pcc.id
+  policy = file("s3-policies/music-pcc-policy.json")
+}
+
+resource "aws_s3_bucket_acl" "music-pcc_bucket_acl" {
+  bucket = aws_s3_bucket.music-pcc.id
+  acl    = "public-read"
+}
+
+resource "aws_s3_bucket_website_configuration" "music-pcc" {
+  bucket = aws_s3_bucket.music-pcc.id
 
   index_document {
     suffix = "index.html"
