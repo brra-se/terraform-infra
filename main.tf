@@ -1,3 +1,7 @@
+## ---------------------------------------------------------------------------------------------------------------------
+## TERRAFORM SETUP
+## Set AWS region and Cloudflare account API token
+## ---------------------------------------------------------------------------------------------------------------------
 terraform {
   backend "s3" {
     bucket         = "terraform-state-backend-s3"
@@ -25,6 +29,11 @@ provider "aws" {
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
+
+## ---------------------------------------------------------------------------------------------------------------------
+## S3 BUCKET STATIC SITES
+## Use local s3-static-site module to set up resources for static sites
+## ---------------------------------------------------------------------------------------------------------------------
 module "music-pcc" {
   source = "./modules/s3-static-site"
 
@@ -44,6 +53,10 @@ module "shuttleday" {
   }
 }
 
+## ---------------------------------------------------------------------------------------------------------------------
+## CLOUDFLARE A RECORDS
+## Bind A record subdomains to AWS EIP for services 
+## ---------------------------------------------------------------------------------------------------------------------
 module "api-shuttleday" {
   source = "./modules/cloudflare-a-record"
 
@@ -60,6 +73,11 @@ module "cicd-a-records" {
   aws_public_eip     = aws_eip.cicd-server-ip.public_ip
 }
 
+## ---------------------------------------------------------------------------------------------------------------------
+## AWS EC2 INFRASTRUCTURE
+## ---------------------------------------------------------------------------------------------------------------------
+## Set up EC2 instances
+## ---------------------------------------------------------------------------------------------------------------------
 resource "aws_instance" "cicd-server" {
   ami                  = "ami-0255a102dbb96cef7"
   iam_instance_profile = "S3-Full-Access"
@@ -101,6 +119,9 @@ resource "aws_instance" "cicd-server" {
 #   }
 # }
 
+## ---------------------------------------------------------------------------------------------------------------------
+## Set up networking
+## ---------------------------------------------------------------------------------------------------------------------
 resource "aws_vpc" "main-vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
@@ -151,6 +172,9 @@ resource "aws_route_table_association" "a" {
   route_table_id = aws_route_table.main-route-table.id
 }
 
+## ---------------------------------------------------------------------------------------------------------------------
+## Define AWS Security Groups
+## ---------------------------------------------------------------------------------------------------------------------
 resource "aws_security_group" "allow_web" {
   name        = "allow_web_traffic"
   description = "Allow HTTP inbound traffic"
@@ -289,6 +313,9 @@ resource "aws_security_group" "allow_monitoring_traffic" {
   }
 }
 
+## ---------------------------------------------------------------------------------------------------------------------
+## Create NICs for EC2 instances
+## ---------------------------------------------------------------------------------------------------------------------
 # resource "aws_network_interface" "web-server-nic" {
 #   subnet_id   = aws_subnet.subnet-1.id
 #   private_ips = ["10.0.1.50"]
@@ -301,11 +328,18 @@ resource "aws_security_group" "allow_monitoring_traffic" {
 # }
 
 resource "aws_network_interface" "cicd-server-nic" {
-  subnet_id       = aws_subnet.subnet-1.id
-  private_ips     = ["10.0.1.60"]
-  security_groups = [aws_security_group.allow_web.id, aws_security_group.allow_ssh.id, aws_security_group.allow_cicd_traffic.id, aws_security_group.allow_mongodb_traffic.id]
+  subnet_id   = aws_subnet.subnet-1.id
+  private_ips = ["10.0.1.60"]
+  security_groups = [aws_security_group.allow_web.id,
+    aws_security_group.allow_ssh.id,
+    aws_security_group.allow_cicd_traffic.id,
+    aws_security_group.allow_mongodb_traffic.id
+  ]
 }
 
+## ---------------------------------------------------------------------------------------------------------------------
+## Create EIPs for EC2 instances
+## ---------------------------------------------------------------------------------------------------------------------
 # resource "aws_eip" "public-web-server-ip" {
 #   instance = aws_instance.web-server.id
 #   vpc      = true
@@ -324,6 +358,10 @@ resource "aws_eip" "cicd-server-ip" {
   ]
 }
 
+## ---------------------------------------------------------------------------------------------------------------------
+## REMOTE TF STATE
+## Create S3 and DynamoDB resources to store remote Terraform state
+## ---------------------------------------------------------------------------------------------------------------------
 resource "aws_s3_bucket" "terraform-state" {
   bucket = "terraform-state-backend-s3"
 
@@ -331,10 +369,6 @@ resource "aws_s3_bucket" "terraform-state" {
   lifecycle {
     prevent_destroy = true
   }
-}
-
-resource "aws_s3_bucket" "shuttleday-payments" {
-  bucket = "shuttleday-payments"
 }
 
 resource "aws_s3_bucket_versioning" "enabled" {
@@ -371,4 +405,13 @@ resource "aws_dynamodb_table" "terraform_locks" {
     name = "LockID"
     type = "S"
   }
+}
+
+## ---------------------------------------------------------------------------------------------------------------------
+## MISCELLANEOUS
+## ---------------------------------------------------------------------------------------------------------------------
+## Create Shuttleday Payments S3 Bucket
+## ---------------------------------------------------------------------------------------------------------------------
+resource "aws_s3_bucket" "shuttleday-payments" {
+  bucket = "shuttleday-payments"
 }
