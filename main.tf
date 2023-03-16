@@ -32,20 +32,16 @@ module "music-pcc" {
   s3_bucket_policy   = "s3-policies/music-pcc-policy.json"
   cname_record       = "music.pierreccesario.com"
 }
-resource "cloudflare_record" "shuttleday" {
-  zone_id = var.shuttleday_cloudflare_zone_id
-  name    = "shuttleday.info"
-  value   = aws_s3_bucket_website_configuration.shuttleday.website_endpoint
-  type    = "CNAME"
-  proxied = true
-}
+module "shuttleday" {
+  source = "./modules/s3-static-site"
 
-resource "cloudflare_record" "www-shuttleday" {
-  zone_id = var.shuttleday_cloudflare_zone_id
-  name    = "www"
-  value   = aws_s3_bucket_website_configuration.www-shuttleday.website_endpoint
-  type    = "CNAME"
-  proxied = true
+  cloudflare_zone_id = var.shuttleday_cloudflare_zone_id
+  s3_bucket_policy   = "s3-policies/shuttleday-policy.json"
+  cname_record       = "shuttleday.info"
+  site_redirect = {
+    cname_record     = "www.shuttleday.info"
+    s3_bucket_policy = "s3-policies/www-shuttleday-policy.json"
+  }
 }
 
 resource "cloudflare_record" "api-shuttleday" {
@@ -358,65 +354,6 @@ resource "aws_s3_bucket" "terraform-state" {
   # Prevent accidental deletion of this S3 bucket
   lifecycle {
     prevent_destroy = true
-  }
-}
-
-resource "aws_s3_bucket" "shuttleday" {
-  bucket = "shuttleday.info"
-}
-
-resource "aws_s3_bucket_policy" "shuttleday" {
-  bucket = aws_s3_bucket.shuttleday.id
-  policy = file("s3-policies/shuttleday-policy.json")
-}
-
-resource "aws_s3_bucket_acl" "shuttleday_bucket_acl" {
-  bucket = aws_s3_bucket.shuttleday.id
-  acl    = "public-read"
-}
-
-resource "aws_s3_bucket_website_configuration" "shuttleday" {
-  bucket = aws_s3_bucket.shuttleday.id
-
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "error.html"
-  }
-
-  routing_rules = <<EOF
-[{
-    "Condition": {
-        "KeyPrefixEquals": "docs/"
-    },
-    "Redirect": {
-        "ReplaceKeyPrefixWith": ""
-    }
-}]
-EOF
-}
-
-resource "aws_s3_bucket" "www-shuttleday" {
-  bucket = "www.shuttleday.info"
-}
-
-resource "aws_s3_bucket_policy" "www-shuttleday" {
-  bucket = aws_s3_bucket.www-shuttleday.id
-  policy = file("s3-policies/www-shuttleday-policy.json")
-}
-
-resource "aws_s3_bucket_acl" "www_shuttleday_bucket_acl" {
-  bucket = aws_s3_bucket.www-shuttleday.id
-  acl    = "public-read"
-}
-
-resource "aws_s3_bucket_website_configuration" "www-shuttleday" {
-  bucket = aws_s3_bucket.www-shuttleday.id
-
-  redirect_all_requests_to {
-    host_name = aws_s3_bucket.shuttleday.bucket
   }
 }
 
