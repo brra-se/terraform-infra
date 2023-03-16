@@ -44,44 +44,20 @@ module "shuttleday" {
   }
 }
 
-resource "cloudflare_record" "api-shuttleday" {
-  zone_id = var.shuttleday_cloudflare_zone_id
-  name    = "api"
-  value   = aws_eip.cicd-server-ip.public_ip
-  type    = "A"
-  proxied = true
+module "api-shuttleday" {
+  source = "./modules/cloudflare-a-record"
+
+  subdomains         = ["api"]
+  cloudflare_zone_id = var.shuttleday_cloudflare_zone_id
+  aws_public_eip     = aws_eip.cicd-server-ip.public_ip
 }
 
-resource "cloudflare_record" "jenkins" {
-  zone_id = var.pcc_cloudflare_zone_id
-  name    = "jenkins"
-  value   = aws_eip.cicd-server-ip.public_ip
-  type    = "A"
-  proxied = true
-}
+module "cicd-a-records" {
+  source = "./modules/cloudflare-a-record"
 
-resource "cloudflare_record" "grafana" {
-  zone_id = var.pcc_cloudflare_zone_id
-  name    = "grafana"
-  value   = aws_eip.cicd-server-ip.public_ip
-  type    = "A"
-  proxied = true
-}
-
-resource "cloudflare_record" "prometheus" {
-  zone_id = var.pcc_cloudflare_zone_id
-  name    = "prometheus"
-  value   = aws_eip.cicd-server-ip.public_ip
-  type    = "A"
-  proxied = true
-}
-
-resource "cloudflare_record" "sonarqube" {
-  zone_id = var.pcc_cloudflare_zone_id
-  name    = "sonarqube"
-  value   = aws_eip.cicd-server-ip.public_ip
-  type    = "A"
-  proxied = true
+  subdomains         = ["jenkins", "grafana", "prometheus", "sonarqube"]
+  cloudflare_zone_id = var.pcc_cloudflare_zone_id
+  aws_public_eip     = aws_eip.cicd-server-ip.public_ip
 }
 
 resource "aws_instance" "cicd-server" {
