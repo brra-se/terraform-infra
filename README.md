@@ -33,6 +33,7 @@ This repository is concerned with the provisioning of infrastructure for any of 
 
 | Repository                                                             | Built With                                                                                                                                                                                                                                                               | Description                                                         |
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| [pierreccesario](https://github.com/PScoriae/pierreccesario)           | [Hugo](https://gohugo.io), [Markdown](https://daringfireball.net/projects/markdown/), [Jenkins](https://www.jenkins.io/),                                                                                                                                                | Personal Portfolio and Blog Static Website                          |
 | [PCPartsTool](https://github.com/PScoriae/PCPartsTool)                 | [SvelteKit](https://kit.svelte.com), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com), [MongoDB](https://mongodb.com), [Jenkins](https://www.jenkins.io/), [Docker](https://www.docker.com/), [Playwright](https://playwright.dev) | The SvelteKit MongoDB WebApp                                        |
 | [PCPartsTool-Scraper](https://github.com/PScoriae/PCPartsTool-Scraper) | [JavaScript](https://www.javascript.com/), [Jenkins](https://www.jenkins.io/), [Docker](https://www.docker.com/)                                                                                                                                                         | Scraping Script to Gather E-commerce Item Data                      |
 | [terraform-infra](https://github.com/PScoriae/terraform-infra)         | [Terraform](https://terraform.com), [Cloudflare](https://cloudflare.com), [AWS](https://aws.amazon.com)                                                                                                                                                                  | Terraform IaC for PCPartsTool Cloud Infrastructure                  |
@@ -46,7 +47,7 @@ This section guides you on how to setup this repo for your own use.
 1. First, ensure [Terraform](https://terraform.com) is installed on your dev computer.
 2. Ensure the [AWS CLI](https://aws.amazon.com/cli/) is also installed on your dev computer.
 3. In the AWS console, create an IAM User for Terraform to use.
-4. Run `aws configure` in your terminal to configure the AWS CLI to use said IAM User:
+4. Run `aws configure` in your terminal to configure the AWS CLI to use said IAM User. This is how Terraform will gain access to your AWS account.
 5. In your desired project folder, clone the project with the following command:
 
    ```bash
@@ -55,5 +56,5 @@ This section guides you on how to setup this repo for your own use.
 
 6. Get your Cloudflare API token for Terraform to use.
 7. Get the Zone IDs for each Cloudflare DNS domain you wish to access through Terraform
-8. Create a `variables.tf` file in the root directory of your project. It holds the credentials to your Cloudflare account. You may refer to `variables.tf.example`
+8. Create a `terraform.tfvars` file in the root directory of your project. It holds the credentials to your Cloudflare account. You may refer to `terraform.example.tfvars`
 9. Finally, run `terraform init` in the root directory to set up the Terraform backend.
