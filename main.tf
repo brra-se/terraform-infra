@@ -175,142 +175,10 @@ resource "aws_route_table_association" "a" {
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Define AWS Security Groups
 ## ---------------------------------------------------------------------------------------------------------------------
-resource "aws_security_group" "allow_web" {
-  name        = "allow_web_traffic"
-  description = "Allow HTTP inbound traffic"
-  vpc_id      = aws_vpc.main-vpc.id
+module "aws_security_group" {
+  source = "./modules/aws-security-groups"
 
-  ingress {
-    description      = "HTTP"
-    from_port        = 80
-    to_port          = 80
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    description      = "HTTPS"
-    from_port        = 443
-    to_port          = 443
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  tags = {
-    Name = "allow http"
-  }
-}
-
-resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh_traffic"
-  description = "Allow SSH inbound traffic"
-  vpc_id      = aws_vpc.main-vpc.id
-
-  ingress {
-    description      = "SSH"
-    from_port        = 22
-    to_port          = 22
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  tags = {
-    Name = "allow ssh"
-  }
-}
-
-resource "aws_security_group" "allow_cicd_traffic" {
-  name        = "allow_cicd_traffic"
-  description = "Allow CICD inbound traffic"
-  vpc_id      = aws_vpc.main-vpc.id
-
-  ingress {
-    description      = "Docker Registry"
-    from_port        = 5000
-    to_port          = 5000
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    description      = "Jenkins"
-    from_port        = 8080
-    to_port          = 8080
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    description      = "Sonarqube"
-    from_port        = 9000
-    to_port          = 9000
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-
-  tags = {
-    Name = "allow cicd traffic"
-  }
-}
-
-resource "aws_security_group" "allow_mongodb_traffic" {
-  name        = "allow_mongodb_traffic"
-  description = "Allow mongodb inbound traffic"
-  vpc_id      = aws_vpc.main-vpc.id
-  ingress {
-    description      = "MongoDB"
-    from_port        = 2500
-    to_port          = 2500
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  tags = {
-    Name = "allow mongodb traffic"
-  }
-}
-
-
-resource "aws_security_group" "allow_monitoring_traffic" {
-  name        = "allow_monitoring_traffic"
-  description = "Allow monitoring inbound traffic"
-  vpc_id      = aws_vpc.main-vpc.id
-  ingress {
-    description      = "Node Exporter"
-    from_port        = 9100
-    to_port          = 9100
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  tags = {
-    Name = "allow monitoring traffic"
-  }
+  vpc_id = aws_vpc.main-vpc.id
 }
 
 ## ---------------------------------------------------------------------------------------------------------------------
@@ -320,20 +188,21 @@ resource "aws_security_group" "allow_monitoring_traffic" {
 #   subnet_id   = aws_subnet.subnet-1.id
 #   private_ips = ["10.0.1.50"]
 #   security_groups = [
-#     aws_security_group.allow_web.id,
-#     aws_security_group.allow_ssh.id,
-#     aws_security_group.allow_monitoring_traffic.id,
-#     aws_security_group.allow_mongodb_traffic.id
+#     module.aws_security_group.allow_web_id,
+#     module.aws_security_group.allow_ssh_id,
+#     module.aws_security_group.allow_monitoring_traffic_id,
+#     module.aws_security_group.allow_mongodb_id
 #   ]
 # }
 
 resource "aws_network_interface" "cicd-server-nic" {
   subnet_id   = aws_subnet.subnet-1.id
   private_ips = ["10.0.1.60"]
-  security_groups = [aws_security_group.allow_web.id,
-    aws_security_group.allow_ssh.id,
-    aws_security_group.allow_cicd_traffic.id,
-    aws_security_group.allow_mongodb_traffic.id
+  security_groups = [
+    module.aws_security_group.allow_web_id,
+    module.aws_security_group.allow_ssh_id,
+    module.aws_security_group.allow_cicd_traffic_id,
+    module.aws_security_group.allow_mongodb_id
   ]
 }
 
