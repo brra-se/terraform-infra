@@ -34,6 +34,17 @@ provider "cloudflare" {
 ## S3 BUCKET STATIC SITES
 ## Use local s3-static-site module to set up resources for static sites
 ## ---------------------------------------------------------------------------------------------------------------------
+module "pcc" {
+  source = "./modules/s3-static-site"
+
+  cloudflare_zone_id = var.pcc_cloudflare_zone_id
+  s3_bucket_policy   = "s3-policies/pcc-policy.json"
+  cname_record       = "pierreccesario.com"
+  site_redirect = {
+    cname_record     = "www.pierreccesario.com"
+    s3_bucket_policy = "s3-policies/www-pcc-policy.json"
+  }
+}
 module "music-pcc" {
   source = "./modules/s3-static-site"
 
