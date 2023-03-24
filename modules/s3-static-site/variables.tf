@@ -8,6 +8,16 @@ variable "s3_bucket_policy" {
   type        = string
 }
 
+variable "index" {
+  description = "path for index.html"
+  type        = string
+}
+
+variable "error" {
+  description = "path for error.html"
+  type        = string
+}
+
 variable "cloudflare_zone_id" {
   description = "Cloudflare zone id"
   type        = string
