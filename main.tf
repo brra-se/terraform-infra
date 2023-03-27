@@ -19,6 +19,10 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 3.0"
     }
+    digitalocean = {
+      source  = "digitalocean/digitalocean"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -30,6 +34,9 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
+provider "digitalocean" {
+  token = var.do_token
+}
 ## ---------------------------------------------------------------------------------------------------------------------
 ## S3 BUCKET STATIC SITES
 ## Use local s3-static-site module to set up resources for static sites
@@ -91,7 +98,7 @@ module "cicd_a_records" {
 }
 
 ## ---------------------------------------------------------------------------------------------------------------------
-## AWS EC2 INFRASTRUCTURE
+## SERVER INFRASTRUCTURE
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Set up EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
@@ -134,6 +141,80 @@ resource "aws_instance" "worker_1" {
   tags = {
     Name = "Worker-1"
   }
+}
+
+## ---------------------------------------------------------------------------------------------------------------------
+## Set up Droplet Instances
+## ---------------------------------------------------------------------------------------------------------------------
+resource "digitalocean_ssh_key" "default" {
+  name       = "Pierre's Macbook Air"
+  public_key = file("/Users/pierre/.ssh/id_rsa.pub")
+}
+resource "digitalocean_vpc" "nyc1" {
+  name     = "default-nyc1"
+  region   = "nyc1"
+  ip_range = "10.116.0.0/20"
+}
+resource "digitalocean_vpc" "lon1" {
+  name     = "london"
+  region   = "lon1"
+  ip_range = "10.10.10.0/24"
+}
+
+resource "digitalocean_reserved_ip" "worker_2" {
+  droplet_id = digitalocean_droplet.worker_2.id
+  region     = digitalocean_droplet.worker_2.region
+}
+
+resource "digitalocean_reserved_ip" "worker_3" {
+  droplet_id = digitalocean_droplet.worker_3.id
+  region     = digitalocean_droplet.worker_3.region
+}
+
+resource "digitalocean_reserved_ip" "worker_4" {
+  droplet_id = digitalocean_droplet.worker_4.id
+  region     = digitalocean_droplet.worker_4.region
+}
+
+resource "digitalocean_droplet" "worker_2" {
+  image      = "almalinux-9-x64"
+  name       = "worker-2"
+  region     = "nyc1"
+  size       = "s-1vcpu-1gb"
+  vpc_uuid   = digitalocean_vpc.nyc1.id
+  monitoring = true
+  ssh_keys   = [digitalocean_ssh_key.default.fingerprint]
+}
+
+resource "digitalocean_droplet" "worker_3" {
+  image      = "almalinux-9-x64"
+  name       = "worker-3"
+  region     = "nyc1"
+  size       = "s-1vcpu-1gb"
+  vpc_uuid   = digitalocean_vpc.nyc1.id
+  monitoring = true
+  ssh_keys   = [digitalocean_ssh_key.default.fingerprint]
+}
+
+resource "digitalocean_droplet" "worker_4" {
+  image      = "almalinux-9-x64"
+  name       = "worker-4"
+  region     = "lon1"
+  size       = "s-1vcpu-1gb"
+  vpc_uuid   = digitalocean_vpc.lon1.id
+  monitoring = true
+  ssh_keys   = [digitalocean_ssh_key.default.fingerprint]
+}
+
+resource "digitalocean_project" "jikkaem" {
+  name        = "jikkaem"
+  description = "A project that encapsulates all jikkaem resources"
+  purpose     = "Self-managed K8s"
+  resources = [
+    digitalocean_droplet.worker_2.urn,
+    digitalocean_droplet.worker_3.urn,
+    digitalocean_droplet.worker_4.urn
+  ]
 }
 
 ## ---------------------------------------------------------------------------------------------------------------------

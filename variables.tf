@@ -14,3 +14,8 @@ variable "shuttleday_cloudflare_zone_id" {
   type      = string
   sensitive = true
 }
+
+variable "do_token" {
+  type      = string
+  sensitive = true
+}
