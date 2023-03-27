@@ -19,22 +19,22 @@ terraform {
 ## MAIN BUCKET
 ## Standard Cloudflare and S3 resources for a static site
 ## ---------------------------------------------------------------------------------------------------------------------
-resource "aws_s3_bucket" "static-site" {
+resource "aws_s3_bucket" "static_site" {
   bucket = var.cname_record
 }
 
-resource "aws_s3_bucket_policy" "static-site" {
-  bucket = aws_s3_bucket.static-site.id
+resource "aws_s3_bucket_policy" "static_site" {
+  bucket = aws_s3_bucket.static_site.id
   policy = file(var.s3_bucket_policy)
 }
 
-resource "aws_s3_bucket_acl" "static-site_bucket_acl" {
-  bucket = aws_s3_bucket.static-site.id
+resource "aws_s3_bucket_acl" "static_site" {
+  bucket = aws_s3_bucket.static_site.id
   acl    = "public-read"
 }
 
-resource "aws_s3_bucket_website_configuration" "static-site" {
-  bucket = aws_s3_bucket.static-site.id
+resource "aws_s3_bucket_website_configuration" "static_site" {
+  bucket = aws_s3_bucket.static_site.id
 
   index_document {
     suffix = var.index
@@ -56,10 +56,10 @@ resource "aws_s3_bucket_website_configuration" "static-site" {
 EOF
 }
 
-resource "cloudflare_record" "static-site" {
+resource "cloudflare_record" "static_site" {
   zone_id = var.cloudflare_zone_id
   name    = var.cname_record
-  value   = aws_s3_bucket_website_configuration.static-site.website_endpoint
+  value   = aws_s3_bucket_website_configuration.static_site.website_endpoint
   type    = "CNAME"
   proxied = true
 }
@@ -90,7 +90,7 @@ resource "aws_s3_bucket_website_configuration" "redirect" {
   bucket = aws_s3_bucket.redirect[0].id
 
   redirect_all_requests_to {
-    host_name = aws_s3_bucket.static-site.bucket
+    host_name = aws_s3_bucket.static_site.bucket
   }
 }
 resource "cloudflare_record" "redirect" {

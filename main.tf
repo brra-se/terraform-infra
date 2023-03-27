@@ -35,7 +35,7 @@ provider "cloudflare" {
 ## Use local s3-static-site module to set up resources for static sites
 ## ---------------------------------------------------------------------------------------------------------------------
 module "pcc" {
-  source = "./modules/s3-static-site"
+  source = "./modules/s3_static_site"
 
   cloudflare_zone_id = var.pcc_cloudflare_zone_id
   s3_bucket_policy   = "s3-policies/pcc-policy.json"
@@ -47,8 +47,8 @@ module "pcc" {
     s3_bucket_policy = "s3-policies/www-pcc-policy.json"
   }
 }
-module "music-pcc" {
-  source = "./modules/s3-static-site"
+module "music_pcc" {
+  source = "./modules/s3_static_site"
 
   cloudflare_zone_id = var.pcc_cloudflare_zone_id
   s3_bucket_policy   = "s3-policies/music-pcc-policy.json"
@@ -57,7 +57,7 @@ module "music-pcc" {
   error              = "error.html"
 }
 module "shuttleday" {
-  source = "./modules/s3-static-site"
+  source = "./modules/s3_static_site"
 
   cloudflare_zone_id = var.shuttleday_cloudflare_zone_id
   s3_bucket_policy   = "s3-policies/shuttleday-policy.json"
@@ -74,20 +74,20 @@ module "shuttleday" {
 ## CLOUDFLARE A RECORDS
 ## Bind A record subdomains to AWS EIP for services 
 ## ---------------------------------------------------------------------------------------------------------------------
-module "api-shuttleday" {
-  source = "./modules/cloudflare-a-record"
+module "api_shuttleday" {
+  source = "./modules/cloudflare_a_record"
 
   subdomains         = ["api"]
   cloudflare_zone_id = var.shuttleday_cloudflare_zone_id
-  aws_public_eip     = aws_eip.cicd-server-ip.public_ip
+  aws_public_eip     = aws_eip.master_1.public_ip
 }
 
-module "cicd-a-records" {
-  source = "./modules/cloudflare-a-record"
+module "cicd_a_records" {
+  source = "./modules/cloudflare_a_record"
 
-  subdomains         = ["jenkins", "grafana", "prometheus", "sonarqube"]
+  subdomains         = ["jenkins"]
   cloudflare_zone_id = var.pcc_cloudflare_zone_id
-  aws_public_eip     = aws_eip.cicd-server-ip.public_ip
+  aws_public_eip     = aws_eip.master_1.public_ip
 }
 
 ## ---------------------------------------------------------------------------------------------------------------------
@@ -95,15 +95,15 @@ module "cicd-a-records" {
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Set up EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
-resource "aws_instance" "cicd-server" {
-  ami                  = "ami-0255a102dbb96cef7"
+resource "aws_instance" "master_1" {
+  ami                  = "ami-0c05a1af7b481274e" # AlmaLinux 9.1 ap-southeast-1
   iam_instance_profile = "S3-Full-Access"
   instance_type        = "t3a.small"
   availability_zone    = "ap-southeast-1a"
   key_name             = "main-key"
 
   network_interface {
-    network_interface_id = aws_network_interface.cicd-server-nic.id
+    network_interface_id = aws_network_interface.master_1.id
     device_index         = 0
   }
 
@@ -112,34 +112,34 @@ resource "aws_instance" "cicd-server" {
   }
 
   tags = {
-    Name = "CICD Server"
+    Name = "Master-1"
   }
 }
 
-# resource "aws_instance" "web-server" {
-#   ami               = "ami-0255a102dbb96cef7"
-#   instance_type     = "t2.micro"
-#   availability_zone = "ap-southeast-1a"
-#   key_name          = "main-key"
+resource "aws_instance" "worker_1" {
+  ami               = "ami-0c05a1af7b481274e" # AlmaLinux 9.1 ap-southeast-1"
+  instance_type     = "t2.micro"
+  availability_zone = "ap-southeast-1a"
+  key_name          = "main-key"
 
-#   network_interface {
-#     network_interface_id = aws_network_interface.web-server-nic.id
-#     device_index         = 0
-#   }
+  network_interface {
+    network_interface_id = aws_network_interface.worker_1.id
+    device_index         = 0
+  }
 
-#   root_block_device {
-#     volume_size = 10
-#   }
+  root_block_device {
+    volume_size = 10
+  }
 
-#   tags = {
-#     Name = "Web Hosting Server"
-#   }
-# }
+  tags = {
+    Name = "Worker-1"
+  }
+}
 
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Set up networking
 ## ---------------------------------------------------------------------------------------------------------------------
-resource "aws_vpc" "main-vpc" {
+resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
   tags = {
@@ -147,25 +147,25 @@ resource "aws_vpc" "main-vpc" {
   }
 }
 
-resource "aws_internet_gateway" "main-gateway" {
-  vpc_id = aws_vpc.main-vpc.id
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
 
   tags = {
     Name = "main"
   }
 }
 
-resource "aws_route_table" "main-route-table" {
-  vpc_id = aws_vpc.main-vpc.id
+resource "aws_route_table" "main" {
+  vpc_id = aws_vpc.main.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main-gateway.id
+    gateway_id = aws_internet_gateway.main.id
   }
 
   route {
     ipv6_cidr_block = "::/0"
-    gateway_id      = aws_internet_gateway.main-gateway.id
+    gateway_id      = aws_internet_gateway.main.id
   }
 
   tags = {
@@ -173,47 +173,46 @@ resource "aws_route_table" "main-route-table" {
   }
 }
 
-resource "aws_subnet" "subnet-1" {
-  vpc_id                  = aws_vpc.main-vpc.id
+resource "aws_subnet" "subnet_1" {
+  vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
   availability_zone       = "ap-southeast-1a"
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "subnet-1"
+    Name = "Subnet-1"
   }
 }
 
 resource "aws_route_table_association" "a" {
-  subnet_id      = aws_subnet.subnet-1.id
-  route_table_id = aws_route_table.main-route-table.id
+  subnet_id      = aws_subnet.subnet_1.id
+  route_table_id = aws_route_table.main.id
 }
 
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Define AWS Security Groups
 ## ---------------------------------------------------------------------------------------------------------------------
 module "aws_security_group" {
-  source = "./modules/aws-security-groups"
+  source = "./modules/aws_security_groups"
 
-  vpc_id = aws_vpc.main-vpc.id
+  vpc_id = aws_vpc.main.id
 }
 
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Create NICs for EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
-# resource "aws_network_interface" "web-server-nic" {
-#   subnet_id   = aws_subnet.subnet-1.id
-#   private_ips = ["10.0.1.50"]
-#   security_groups = [
-#     module.aws_security_group.allow_web_id,
-#     module.aws_security_group.allow_ssh_id,
-#     module.aws_security_group.allow_monitoring_traffic_id,
-#     module.aws_security_group.allow_mongodb_id
-#   ]
-# }
+resource "aws_network_interface" "worker_1" {
+  subnet_id   = aws_subnet.subnet_1.id
+  private_ips = ["10.0.1.50"]
+  security_groups = [
+    module.aws_security_group.allow_web_id,
+    module.aws_security_group.allow_ssh_id,
+    module.aws_security_group.allow_mongodb_id
+  ]
+}
 
-resource "aws_network_interface" "cicd-server-nic" {
-  subnet_id   = aws_subnet.subnet-1.id
+resource "aws_network_interface" "master_1" {
+  subnet_id   = aws_subnet.subnet_1.id
   private_ips = ["10.0.1.60"]
   security_groups = [
     module.aws_security_group.allow_web_id,
@@ -226,21 +225,21 @@ resource "aws_network_interface" "cicd-server-nic" {
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Create EIPs for EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
-# resource "aws_eip" "public-web-server-ip" {
-#   instance = aws_instance.web-server.id
-#   vpc      = true
-
-#   depends_on = [
-#     aws_internet_gateway.main-gateway
-#   ]
-# }
-
-resource "aws_eip" "cicd-server-ip" {
-  instance = aws_instance.cicd-server.id
+resource "aws_eip" "worker_1" {
+  instance = aws_instance.worker_1.id
   vpc      = true
 
   depends_on = [
-    aws_internet_gateway.main-gateway
+    aws_internet_gateway.main
+  ]
+}
+
+resource "aws_eip" "master_1" {
+  instance = aws_instance.master_1.id
+  vpc      = true
+
+  depends_on = [
+    aws_internet_gateway.main
   ]
 }
 
