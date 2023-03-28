@@ -86,7 +86,7 @@ module "api_shuttleday" {
 
   subdomains         = ["api"]
   cloudflare_zone_id = var.shuttleday_cloudflare_zone_id
-  aws_public_eip     = aws_eip.master_1.public_ip
+  aws_public_eip     = aws_eip.t3a_small.public_ip
 }
 
 module "cicd_a_records" {
@@ -94,7 +94,7 @@ module "cicd_a_records" {
 
   subdomains         = ["jenkins"]
   cloudflare_zone_id = var.pcc_cloudflare_zone_id
-  aws_public_eip     = aws_eip.master_1.public_ip
+  aws_public_eip     = aws_eip.t3a_small.public_ip
 }
 
 ## ---------------------------------------------------------------------------------------------------------------------
@@ -102,7 +102,7 @@ module "cicd_a_records" {
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Set up EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
-resource "aws_instance" "master_1" {
+resource "aws_instance" "t3a_small" {
   ami                  = "ami-0c05a1af7b481274e" # AlmaLinux 9.1 ap-southeast-1
   iam_instance_profile = "S3-Full-Access"
   instance_type        = "t3a.small"
@@ -110,7 +110,7 @@ resource "aws_instance" "master_1" {
   key_name             = "main-key"
 
   network_interface {
-    network_interface_id = aws_network_interface.master_1.id
+    network_interface_id = aws_network_interface.t3a_small.id
     device_index         = 0
   }
 
@@ -119,18 +119,18 @@ resource "aws_instance" "master_1" {
   }
 
   tags = {
-    Name = "Master-1"
+    Name = "t3a-small"
   }
 }
 
-resource "aws_instance" "worker_1" {
+resource "aws_instance" "t2_micro" {
   ami               = "ami-0c05a1af7b481274e" # AlmaLinux 9.1 ap-southeast-1"
   instance_type     = "t2.micro"
   availability_zone = "ap-southeast-1a"
   key_name          = "main-key"
 
   network_interface {
-    network_interface_id = aws_network_interface.worker_1.id
+    network_interface_id = aws_network_interface.t2_micro.id
     device_index         = 0
   }
 
@@ -139,16 +139,15 @@ resource "aws_instance" "worker_1" {
   }
 
   tags = {
-    Name = "Worker-1"
+    Name = "t2-micro"
   }
 }
 
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Set up Droplet Instances
 ## ---------------------------------------------------------------------------------------------------------------------
-resource "digitalocean_ssh_key" "default" {
-  name       = "Pierre's Macbook Air"
-  public_key = file("/Users/pierre/.ssh/id_rsa.pub")
+data "digitalocean_kubernetes_versions" "default" {
+  version_prefix = "1.26."
 }
 resource "digitalocean_vpc" "nyc1" {
   name     = "default-nyc1"
@@ -161,59 +160,32 @@ resource "digitalocean_vpc" "lon1" {
   ip_range = "10.10.10.0/24"
 }
 
-resource "digitalocean_reserved_ip" "worker_2" {
-  droplet_id = digitalocean_droplet.worker_2.id
-  region     = digitalocean_droplet.worker_2.region
-}
+resource "digitalocean_kubernetes_cluster" "sgp1" {
+  name         = "sgp1-cluster"
+  region       = "sgp1"
+  auto_upgrade = true
+  version      = data.digitalocean_kubernetes_versions.default.latest_version
 
-resource "digitalocean_reserved_ip" "worker_3" {
-  droplet_id = digitalocean_droplet.worker_3.id
-  region     = digitalocean_droplet.worker_3.region
-}
+  maintenance_policy {
+    start_time = "04:00"
+    day        = "sunday"
+  }
 
-resource "digitalocean_reserved_ip" "worker_4" {
-  droplet_id = digitalocean_droplet.worker_4.id
-  region     = digitalocean_droplet.worker_4.region
-}
-
-resource "digitalocean_droplet" "worker_2" {
-  image      = "almalinux-9-x64"
-  name       = "worker-2"
-  region     = "nyc1"
-  size       = "s-1vcpu-1gb"
-  vpc_uuid   = digitalocean_vpc.nyc1.id
-  monitoring = true
-  ssh_keys   = [digitalocean_ssh_key.default.fingerprint]
-}
-
-resource "digitalocean_droplet" "worker_3" {
-  image      = "almalinux-9-x64"
-  name       = "worker-3"
-  region     = "nyc1"
-  size       = "s-1vcpu-1gb"
-  vpc_uuid   = digitalocean_vpc.nyc1.id
-  monitoring = true
-  ssh_keys   = [digitalocean_ssh_key.default.fingerprint]
-}
-
-resource "digitalocean_droplet" "worker_4" {
-  image      = "almalinux-9-x64"
-  name       = "worker-4"
-  region     = "lon1"
-  size       = "s-1vcpu-1gb"
-  vpc_uuid   = digitalocean_vpc.lon1.id
-  monitoring = true
-  ssh_keys   = [digitalocean_ssh_key.default.fingerprint]
+  node_pool {
+    name       = "microservice-autoscale-worker-pool"
+    size       = "s-1vcpu-2gb"
+    auto_scale = true
+    min_nodes  = 1
+    max_nodes  = 2
+  }
 }
 
 resource "digitalocean_project" "jikkaem" {
   name        = "jikkaem"
   description = "A project that encapsulates all jikkaem resources"
-  purpose     = "Self-managed K8s"
+  purpose     = "K8s Stuff"
   resources = [
-    digitalocean_droplet.worker_2.urn,
-    digitalocean_droplet.worker_3.urn,
-    digitalocean_droplet.worker_4.urn
+    digitalocean_kubernetes_cluster.sgp1.urn,
   ]
 }
 
@@ -282,32 +254,30 @@ module "aws_security_group" {
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Create NICs for EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
-resource "aws_network_interface" "worker_1" {
+resource "aws_network_interface" "t2_micro" {
   subnet_id   = aws_subnet.subnet_1.id
   private_ips = ["10.0.1.50"]
   security_groups = [
     module.aws_security_group.allow_web_id,
     module.aws_security_group.allow_ssh_id,
-    module.aws_security_group.allow_mongodb_id
   ]
 }
 
-resource "aws_network_interface" "master_1" {
+resource "aws_network_interface" "t3a_small" {
   subnet_id   = aws_subnet.subnet_1.id
   private_ips = ["10.0.1.60"]
   security_groups = [
     module.aws_security_group.allow_web_id,
     module.aws_security_group.allow_ssh_id,
     module.aws_security_group.allow_cicd_traffic_id,
-    module.aws_security_group.allow_mongodb_id
   ]
 }
 
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Create EIPs for EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
-resource "aws_eip" "worker_1" {
-  instance = aws_instance.worker_1.id
+resource "aws_eip" "t2_micro" {
+  instance = aws_instance.t2_micro.id
   vpc      = true
 
   depends_on = [
@@ -315,8 +285,8 @@ resource "aws_eip" "worker_1" {
   ]
 }
 
-resource "aws_eip" "master_1" {
-  instance = aws_instance.master_1.id
+resource "aws_eip" "t3a_small" {
+  instance = aws_instance.t3a_small.id
   vpc      = true
 
   depends_on = [
