@@ -81,13 +81,6 @@ module "shuttleday" {
 ## CLOUDFLARE A RECORDS
 ## Bind A record subdomains to AWS EIP for services 
 ## ---------------------------------------------------------------------------------------------------------------------
-module "api_shuttleday" {
-  source = "./modules/cloudflare_a_record"
-
-  subdomains         = ["api"]
-  cloudflare_zone_id = var.shuttleday_cloudflare_zone_id
-  aws_public_eip     = aws_eip.t3a_small.public_ip
-}
 
 module "cicd_a_records" {
   source = "./modules/cloudflare_a_record"
@@ -148,16 +141,6 @@ resource "aws_instance" "t2_micro" {
 ## ---------------------------------------------------------------------------------------------------------------------
 data "digitalocean_kubernetes_versions" "default" {
   version_prefix = "1.26."
-}
-resource "digitalocean_vpc" "nyc1" {
-  name     = "default-nyc1"
-  region   = "nyc1"
-  ip_range = "10.116.0.0/20"
-}
-resource "digitalocean_vpc" "lon1" {
-  name     = "london"
-  region   = "lon1"
-  ip_range = "10.10.10.0/24"
 }
 
 resource "digitalocean_kubernetes_cluster" "sgp1" {
