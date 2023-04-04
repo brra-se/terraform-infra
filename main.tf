@@ -85,7 +85,7 @@ module "shuttleday" {
 module "cicd_a_records" {
   source = "./modules/cloudflare_a_record"
 
-  subdomains         = ["jenkins", "docker"]
+  subdomains         = ["jenkins", "docker", "nlp"]
   cloudflare_zone_id = var.pcc_cloudflare_zone_id
   aws_public_eip     = aws_eip.t3a_small.public_ip
 }
