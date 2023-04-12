@@ -116,26 +116,6 @@ resource "aws_instance" "t3a_small" {
   }
 }
 
-resource "aws_instance" "t2_micro" {
-  ami               = "ami-0c05a1af7b481274e" # AlmaLinux 9.1 ap-southeast-1"
-  instance_type     = "t2.micro"
-  availability_zone = "ap-southeast-1a"
-  key_name          = "main-key"
-
-  network_interface {
-    network_interface_id = aws_network_interface.t2_micro.id
-    device_index         = 0
-  }
-
-  root_block_device {
-    volume_size = 10
-  }
-
-  tags = {
-    Name = "t2-micro"
-  }
-}
-
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Set up Droplet Instances
 ## ---------------------------------------------------------------------------------------------------------------------
@@ -163,14 +143,14 @@ resource "digitalocean_kubernetes_cluster" "sgp1" {
   }
 }
 
-resource "digitalocean_project" "jikkaem" {
-  name        = "jikkaem"
-  description = "A project that encapsulates all jikkaem resources"
-  purpose     = "K8s Stuff"
-  resources = [
-    digitalocean_kubernetes_cluster.sgp1.urn,
-  ]
-}
+# resource "digitalocean_project" "jikkaem" {
+#   name        = "jikkaem"
+#   description = "A project that encapsulates all jikkaem resources"
+#   purpose     = "K8s Stuff"
+#   resources = [
+#     digitalocean_kubernetes_cluster.sgp1.urn,
+#   ]
+# }
 
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Set up networking
@@ -237,14 +217,14 @@ module "aws_security_group" {
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Create NICs for EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
-resource "aws_network_interface" "t2_micro" {
-  subnet_id   = aws_subnet.subnet_1.id
-  private_ips = ["10.0.1.50"]
-  security_groups = [
-    module.aws_security_group.allow_web_id,
-    module.aws_security_group.allow_ssh_id,
-  ]
-}
+# resource "aws_network_interface" "t2_micro" {
+#   subnet_id   = aws_subnet.subnet_1.id
+#   private_ips = ["10.0.1.50"]
+#   security_groups = [
+#     module.aws_security_group.allow_web_id,
+#     module.aws_security_group.allow_ssh_id,
+#   ]
+# }
 
 resource "aws_network_interface" "t3a_small" {
   subnet_id   = aws_subnet.subnet_1.id
@@ -259,14 +239,14 @@ resource "aws_network_interface" "t3a_small" {
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Create EIPs for EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
-resource "aws_eip" "t2_micro" {
-  instance = aws_instance.t2_micro.id
-  vpc      = true
+# resource "aws_eip" "t2_micro" {
+#   instance = aws_instance.t2_micro.id
+#   vpc      = true
 
-  depends_on = [
-    aws_internet_gateway.main
-  ]
-}
+#   depends_on = [
+#     aws_internet_gateway.main
+#   ]
+# }
 
 resource "aws_eip" "t3a_small" {
   instance = aws_instance.t3a_small.id
