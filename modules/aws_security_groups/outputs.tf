@@ -21,3 +21,8 @@ output "allow_monitoring_id" {
 output "allow_wireguard_id" {
   value = aws_security_group.allow_wireguard.id
 }
+
+output "allow_uptime_kuma_id" {
+  value = aws_security_group.allow_uptime_kuma.id
+}
+

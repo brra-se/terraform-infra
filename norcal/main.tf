@@ -134,6 +134,7 @@ resource "aws_network_interface" "t2_micro" {
     module.aws_security_group.allow_web_id,
     module.aws_security_group.allow_ssh_id,
     module.aws_security_group.allow_wireguard_id,
+    module.aws_security_group.allow_uptime_kuma_id,
   ]
 }
 

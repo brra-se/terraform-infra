@@ -105,7 +105,26 @@ resource "aws_security_group" "allow_wireguard" {
     Name = "allow wireguard traffic"
   }
 }
+## ---------------------------------------------------------------------------------------------------------------------
+## ALLOW INBOUND UPTIME KUMA TRAFFIC
+## ---------------------------------------------------------------------------------------------------------------------
+resource "aws_security_group" "allow_uptime_kuma" {
+  name        = "allow_uptime_kuma_traffic"
+  description = "Allow Uptime Kuma traffic"
+  vpc_id      = var.vpc_id
 
+  ingress {
+    description      = "Uptime Kuma TCP port"
+    from_port        = 3001
+    to_port          = 3001
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  tags = {
+    Name = "allow uptime_kuma traffic"
+  }
+}
 
 ## ---------------------------------------------------------------------------------------------------------------------
 ## ALLOW INBOUND TRAFFIC TO CICD SERVICES
