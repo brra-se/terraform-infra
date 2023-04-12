@@ -17,3 +17,7 @@ output "allow_mongodb_id" {
 output "allow_monitoring_id" {
   value = aws_security_group.allow_monitoring.id
 }
+
+output "allow_wireguard_id" {
+  value = aws_security_group.allow_wireguard.id
+}

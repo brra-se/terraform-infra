@@ -77,6 +77,37 @@ resource "aws_security_group" "allow_ssh" {
 }
 
 ## ---------------------------------------------------------------------------------------------------------------------
+## ALLOW INBOUND WIREGUARD VPN TRAFFIC
+## ---------------------------------------------------------------------------------------------------------------------
+resource "aws_security_group" "allow_wireguard" {
+  name        = "allow_wireguard"
+  description = "Allow wireguard VPN traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description      = "Wireguard TCP port"
+    from_port        = 51820
+    to_port          = 51820
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  ingress {
+    description      = "Wireguard UDP port"
+    from_port        = 51820
+    to_port          = 51820
+    protocol         = "udp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  tags = {
+    Name = "allow wireguard traffic"
+  }
+}
+
+
+## ---------------------------------------------------------------------------------------------------------------------
 ## ALLOW INBOUND TRAFFIC TO CICD SERVICES
 ## ---------------------------------------------------------------------------------------------------------------------
 resource "aws_security_group" "allow_cicd_traffic" {
