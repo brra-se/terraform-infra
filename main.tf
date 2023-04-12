@@ -29,7 +29,6 @@ terraform {
 provider "aws" {
   region = "ap-southeast-1"
 }
-
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
@@ -89,7 +88,6 @@ module "cicd_a_records" {
   cloudflare_zone_id = var.pcc_cloudflare_zone_id
   aws_public_eip     = aws_eip.t3a_small.public_ip
 }
-
 ## ---------------------------------------------------------------------------------------------------------------------
 ## SERVER INFRASTRUCTURE
 ## ---------------------------------------------------------------------------------------------------------------------
@@ -142,15 +140,6 @@ resource "digitalocean_kubernetes_cluster" "sgp1" {
     max_nodes  = 2
   }
 }
-
-# resource "digitalocean_project" "jikkaem" {
-#   name        = "jikkaem"
-#   description = "A project that encapsulates all jikkaem resources"
-#   purpose     = "K8s Stuff"
-#   resources = [
-#     digitalocean_kubernetes_cluster.sgp1.urn,
-#   ]
-# }
 
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Set up networking
@@ -217,15 +206,6 @@ module "aws_security_group" {
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Create NICs for EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
-# resource "aws_network_interface" "t2_micro" {
-#   subnet_id   = aws_subnet.subnet_1.id
-#   private_ips = ["10.0.1.50"]
-#   security_groups = [
-#     module.aws_security_group.allow_web_id,
-#     module.aws_security_group.allow_ssh_id,
-#   ]
-# }
-
 resource "aws_network_interface" "t3a_small" {
   subnet_id   = aws_subnet.subnet_1.id
   private_ips = ["10.0.1.60"]
@@ -239,15 +219,6 @@ resource "aws_network_interface" "t3a_small" {
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Create EIPs for EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
-# resource "aws_eip" "t2_micro" {
-#   instance = aws_instance.t2_micro.id
-#   vpc      = true
-
-#   depends_on = [
-#     aws_internet_gateway.main
-#   ]
-# }
-
 resource "aws_eip" "t3a_small" {
   instance = aws_instance.t3a_small.id
   vpc      = true
