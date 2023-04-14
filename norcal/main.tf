@@ -31,7 +31,7 @@ provider "cloudflare" {
 module "status_a_records" {
   source = "../modules/cloudflare_a_record"
 
-  subdomains         = ["status"]
+  subdomains         = ["status", "uptime-kuma"]
   cloudflare_zone_id = var.pcc_cloudflare_zone_id
   aws_public_eip     = aws_eip.t2_micro.public_ip
 }
@@ -42,7 +42,7 @@ module "status_a_records" {
 ## Set up EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
 resource "aws_instance" "t2_micro" {
-  ami                  = "ami-014d05e6b24240371" # AlmaLinux 9.1 ap-southeast-1
+  ami                  = "ami-014d05e6b24240371" # Ubuntu 22.04 LTS
   iam_instance_profile = "S3-Full-Access"
   instance_type        = "t2.micro"
   availability_zone    = "us-west-1a"
@@ -134,7 +134,6 @@ resource "aws_network_interface" "t2_micro" {
     module.aws_security_group.allow_web_id,
     module.aws_security_group.allow_ssh_id,
     module.aws_security_group.allow_wireguard_id,
-    module.aws_security_group.allow_uptime_kuma_id,
   ]
 }
 
