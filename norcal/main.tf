@@ -36,6 +36,14 @@ module "status_a_records" {
   aws_public_eip     = aws_eip.t2_micro.public_ip
 }
 
+module "shuttleday_status_a_records" {
+  source = "../modules/cloudflare_a_record"
+
+  subdomains         = ["status"]
+  cloudflare_zone_id = var.shuttleday_cloudflare_zone_id
+  aws_public_eip     = aws_eip.t2_micro.public_ip
+}
+
 ## ---------------------------------------------------------------------------------------------------------------------
 ## SERVER INFRASTRUCTURE
 ## ---------------------------------------------------------------------------------------------------------------------
