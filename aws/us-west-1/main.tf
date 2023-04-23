@@ -29,7 +29,7 @@ provider "cloudflare" {
 ## ---------------------------------------------------------------------------------------------------------------------
 
 module "status_a_records" {
-  source = "../modules/cloudflare_a_record"
+  source = "../../modules/cloudflare_a_record"
 
   subdomains         = ["status", "uptime-kuma"]
   cloudflare_zone_id = var.pcc_cloudflare_zone_id
@@ -37,7 +37,7 @@ module "status_a_records" {
 }
 
 module "shuttleday_status_a_records" {
-  source = "../modules/cloudflare_a_record"
+  source = "../../modules/cloudflare_a_record"
 
   subdomains         = ["status"]
   cloudflare_zone_id = var.shuttleday_cloudflare_zone_id
@@ -127,7 +127,7 @@ resource "aws_route_table_association" "a" {
 ## Define AWS Security Groups
 ## ---------------------------------------------------------------------------------------------------------------------
 module "aws_security_group" {
-  source = "../modules/aws_security_groups"
+  source = "../../modules/aws_security_groups"
 
   vpc_id = aws_vpc.main.id
 }

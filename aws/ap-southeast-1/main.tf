@@ -41,38 +41,38 @@ provider "digitalocean" {
 ## Use local s3-static-site module to set up resources for static sites
 ## ---------------------------------------------------------------------------------------------------------------------
 module "pcc" {
-  source = "./modules/s3_static_site"
+  source = "../../modules/s3_static_site"
 
   cloudflare_zone_id = var.pcc_cloudflare_zone_id
-  s3_bucket_policy   = "s3-policies/pcc-policy.json"
+  s3_bucket_policy   = "../s3-policies/pcc-policy.json"
   cname_record       = "pierreccesario.com"
   index              = "index.html"
   error              = "error.html"
   site_redirect = {
     cname_record     = "www.pierreccesario.com"
-    s3_bucket_policy = "s3-policies/www-pcc-policy.json"
+    s3_bucket_policy = "../s3-policies/www-pcc-policy.json"
   }
 }
 module "music_pcc" {
-  source = "./modules/s3_static_site"
+  source = "../../modules/s3_static_site"
 
   cloudflare_zone_id = var.pcc_cloudflare_zone_id
-  s3_bucket_policy   = "s3-policies/music-pcc-policy.json"
+  s3_bucket_policy   = "../s3-policies/music-pcc-policy.json"
   cname_record       = "music.pierreccesario.com"
   index              = "index.html"
   error              = "error.html"
 }
 module "shuttleday" {
-  source = "./modules/s3_static_site"
+  source = "../../modules/s3_static_site"
 
   cloudflare_zone_id = var.shuttleday_cloudflare_zone_id
-  s3_bucket_policy   = "s3-policies/shuttleday-policy.json"
+  s3_bucket_policy   = "../s3-policies/shuttleday-policy.json"
   cname_record       = "shuttleday.info"
   index              = "index.html"
   error              = "index.html"
   site_redirect = {
     cname_record     = "www.shuttleday.info"
-    s3_bucket_policy = "s3-policies/www-shuttleday-policy.json"
+    s3_bucket_policy = "../s3-policies/www-shuttleday-policy.json"
   }
 }
 
@@ -82,9 +82,9 @@ module "shuttleday" {
 ## ---------------------------------------------------------------------------------------------------------------------
 
 module "cicd_a_records" {
-  source = "./modules/cloudflare_a_record"
+  source = "../../modules/cloudflare_a_record"
 
-  subdomains         = ["jenkins", "docker", "nlp"]
+  subdomains         = ["jenkins", "nlp"]
   cloudflare_zone_id = var.pcc_cloudflare_zone_id
   aws_public_eip     = aws_eip.t3a_small.public_ip
 }
@@ -198,7 +198,7 @@ resource "aws_route_table_association" "a" {
 ## Define AWS Security Groups
 ## ---------------------------------------------------------------------------------------------------------------------
 module "aws_security_group" {
-  source = "./modules/aws_security_groups"
+  source = "../../modules/aws_security_groups"
 
   vpc_id = aws_vpc.main.id
 }
