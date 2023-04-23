@@ -12,10 +12,6 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 3.0"
     }
-    digitalocean = {
-      source  = "digitalocean/digitalocean"
-      version = "~> 2.0"
-    }
   }
 }
 
@@ -26,9 +22,6 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-provider "digitalocean" {
-  token = var.do_token
-}
 ## ---------------------------------------------------------------------------------------------------------------------
 ## S3 BUCKET STATIC SITES
 ## Use local s3-static-site module to set up resources for static sites
@@ -104,33 +97,6 @@ resource "aws_instance" "t3a_small" {
 
   tags = {
     Name = "t3a-small"
-  }
-}
-
-## ---------------------------------------------------------------------------------------------------------------------
-## Set up Droplet Instances
-## ---------------------------------------------------------------------------------------------------------------------
-data "digitalocean_kubernetes_versions" "default" {
-  version_prefix = "1.26."
-}
-
-resource "digitalocean_kubernetes_cluster" "sgp1" {
-  name         = "sgp1-cluster"
-  region       = "sgp1"
-  auto_upgrade = true
-  version      = data.digitalocean_kubernetes_versions.default.latest_version
-
-  maintenance_policy {
-    start_time = "04:00"
-    day        = "sunday"
-  }
-
-  node_pool {
-    name       = "microservice-autoscale-worker-pool"
-    size       = "s-1vcpu-2gb"
-    auto_scale = true
-    min_nodes  = 1
-    max_nodes  = 2
   }
 }
 
