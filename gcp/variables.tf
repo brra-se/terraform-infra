@@ -16,3 +16,8 @@ variable "k8s_machine_type" {
   type    = string
   default = "t2a-standard-2"
 }
+
+variable "bastion_machine_type" {
+  type    = string
+  default = "e2-micro"
+}
