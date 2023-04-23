@@ -64,7 +64,7 @@ resource "google_compute_instance" "bastion_host" {
 
   boot_disk {
     initialize_params {
-      image = "rocky-linux-cloud/rocky-linux-9-optimized-gcp"
+      image = "debian-cloud/debian-11"
     }
   }
 
