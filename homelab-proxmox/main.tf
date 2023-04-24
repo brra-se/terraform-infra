@@ -16,6 +16,23 @@ provider "proxmox" {
 }
 
 
+resource "proxmox_lxc" "tailscale" {
+  target_node  = "host"
+  hostname     = "tailscale-home"
+  unprivileged = true
+  swap         = 512
+  template     = false
+  unique       = false
+  onboot       = true
+  cmode        = "tty"
+
+  rootfs {
+    storage = "ISO-Storage"
+    size    = "4G"
+  }
+}
+
+
 resource "proxmox_vm_qemu" "samba" {
   name                   = "Samba"
   target_node            = "host"
