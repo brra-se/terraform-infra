@@ -16,10 +16,35 @@ provider "proxmox" {
 }
 
 
-# resource "proxmox_vm_qemu" "test" {
-#   name        = "test"
-#   target_node = "host"
-#   iso         = "ISO-Storage:iso/ubuntu-22.04.2-live-server-amd64.iso"
-#   vmid        = 134
-# }
+resource "proxmox_vm_qemu" "samba" {
+  name                   = "Samba"
+  target_node            = "host"
+  bios                   = "seabios"
+  onboot                 = true
+  numa                   = false
+  full_clone             = false
+  agent                  = 1
+  memory                 = 1024
+  qemu_os                = "l26"
+  scsihw                 = "virtio-scsi-single"
+  oncreate               = false
+  define_connection_info = false
+
+  disk {
+    type     = "scsi"
+    storage  = "ISO-Storage"
+    size     = "500G"
+    backup   = true
+    cache    = "none"
+    file     = "105/vm-105-disk-0.qcow2"
+    format   = "qcow2"
+    iothread = 1
+  }
+
+  network {
+    bridge   = "vmbr0"
+    model    = "virtio"
+    firewall = "true"
+  }
+}
 
