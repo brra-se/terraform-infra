@@ -32,6 +32,22 @@ resource "proxmox_lxc" "tailscale" {
   }
 }
 
+resource "proxmox_lxc" "adguard_home" {
+  target_node  = "host"
+  hostname     = "Adguard"
+  unprivileged = true
+  swap         = 512
+  template     = false
+  unique       = false
+  onboot       = true
+  cmode        = "tty"
+
+  rootfs {
+    storage = "ISO-Storage"
+    size    = "4G"
+  }
+}
+
 
 resource "proxmox_vm_qemu" "samba" {
   name                   = "Samba"
