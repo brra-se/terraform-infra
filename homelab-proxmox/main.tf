@@ -8,10 +8,8 @@ terraform {
 }
 
 provider "proxmox" {
-  pm_api_url = var.api_url
-
-  pm_api_token_id = var.api_id
-
+  pm_api_url          = var.api_url
+  pm_api_token_id     = var.api_id
   pm_api_token_secret = var.api_token_secret
 }
 
@@ -45,6 +43,22 @@ resource "proxmox_lxc" "adguard_home" {
   rootfs {
     storage = "ISO-Storage"
     size    = "4G"
+  }
+}
+
+resource "proxmox_lxc" "cloudflared" {
+  target_node  = "host"
+  hostname     = "CloudflareD"
+  unprivileged = true
+  swap         = 512
+  template     = false
+  unique       = false
+  onboot       = true
+  cmode        = "tty"
+
+  rootfs {
+    storage = "ISO-Storage"
+    size    = "5G"
   }
 }
 
