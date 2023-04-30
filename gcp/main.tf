@@ -54,6 +54,8 @@ resource "google_compute_instance" "k8s_worker1" {
   network_interface {
     network    = "default"
     network_ip = "10.128.0.20"
+    access_config {
+    }
   }
 }
 
