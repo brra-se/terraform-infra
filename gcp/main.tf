@@ -28,7 +28,7 @@ resource "google_compute_instance" "k8s_control_plane1" {
 
   boot_disk {
     initialize_params {
-      image = "rocky-linux-cloud/rocky-linux-9-optimized-gcp-arm64"
+      image = "ubuntu-os-cloud/ubuntu-2204-lts-arm64"
     }
   }
 
@@ -47,7 +47,7 @@ resource "google_compute_instance" "k8s_worker1" {
 
   boot_disk {
     initialize_params {
-      image = "rocky-linux-cloud/rocky-linux-9-optimized-gcp-arm64"
+      image = "ubuntu-os-cloud/ubuntu-2204-lts-arm64"
     }
   }
 
