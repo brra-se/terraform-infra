@@ -59,6 +59,25 @@ module "music_pcc" {
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Set up EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
+resource "aws_instance" "t3a_small" {
+  ami               = "ami-0c05a1af7b481274e" # AlmaLinux 9.1 ap-southeast-1
+  instance_type     = "t3a.small"
+  availability_zone = "ap-southeast-1a"
+  key_name          = "main-key"
+
+  network_interface {
+    network_interface_id = aws_network_interface.t3a_small.id
+    device_index         = 0
+  }
+
+  root_block_device {
+    volume_size = 20
+  }
+
+  tags = {
+    Name = "t3a-small"
+  }
+}
 
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Set up networking
@@ -125,10 +144,25 @@ module "aws_security_group" {
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Create NICs for EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
+resource "aws_network_interface" "t3a_small" {
+  subnet_id   = aws_subnet.subnet_1.id
+  private_ips = ["10.0.1.60"]
+  security_groups = [
+    module.aws_security_group.allow_ssh_id,
+  ]
+}
 
 ## ---------------------------------------------------------------------------------------------------------------------
 ## Create EIPs for EC2 instances
 ## ---------------------------------------------------------------------------------------------------------------------
+resource "aws_eip" "t3a_small" {
+  instance = aws_instance.t3a_small.id
+  vpc      = true
+
+  depends_on = [
+    aws_internet_gateway.main
+  ]
+}
 
 ## ---------------------------------------------------------------------------------------------------------------------
 ## REMOTE TF STATE
